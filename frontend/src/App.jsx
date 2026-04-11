@@ -5,6 +5,8 @@ import './App.css';
 import { Trash2, ArrowLeft, Rocket, Eraser, Pen, LogOut } from 'lucide-react';
 import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
+import CanvasAnimal from './components/CanvasAnimal';
+import CanvasProduct from './components/CanvasProduct';
 
 function App() {
   // tham chiếu tới phần tử <canvas>
@@ -364,22 +366,29 @@ function App() {
                 </button>
               </div>
 
-              {/* Phần canvas */}
-              <div className="canvas-wrapper">
-                <canvas
-                  ref={canvasRef}
-                  width={400}
-                  height={400}
-                  onMouseDown={startDrawing}
-                  onMouseMove={draw}
-                  onMouseUp={stopDrawing}
-                  onMouseLeave={stopDrawing}
-                  onTouchStart={startDrawing}
-                  onTouchMove={draw}
-                  onTouchEnd={stopDrawing}
-                  onTouchCancel={stopDrawing}
+              {/* Phần canvas - Render khác nhau theo chế độ */}
+              {searchCategory === 'animal' && (
+                <CanvasAnimal
+                  canvasRef={canvasRef}
+                  brushSize={brushSize}
+                  color={color}
+                  mode={mode}
+                  onStartDrawing={startDrawing}
+                  onDraw={draw}
+                  onStopDrawing={stopDrawing}
                 />
-              </div>
+              )}
+              {searchCategory === 'product' && (
+                <CanvasProduct
+                  canvasRef={canvasRef}
+                  brushSize={brushSize}
+                  color={color}
+                  mode={mode}
+                  onStartDrawing={startDrawing}
+                  onDraw={draw}
+                  onStopDrawing={stopDrawing}
+                />
+              )}
 
               {/* Lưới kết quả */}
               {results.length > 0 && (
@@ -391,7 +400,6 @@ function App() {
                         alt={r.name}
                         style={{ width: '220px', height: '220px', objectFit: 'contain', border: '1px solid #ccc' }}
                       />
-                      <div>{r.image}</div>
                       <div className="result-name">{r.name}</div>
                       <a href="#" className="details-link">
                         Xem chi tiết

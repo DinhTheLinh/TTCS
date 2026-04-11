@@ -281,10 +281,13 @@ canvas:hover {
 /* Grid hiển thị kết quả: tự động điều chỉnh số cột, căn giữa */
 .results-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(5, 1fr);
   gap: 1rem;
   justify-items: center;
   width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
 }
 
 /* Thẻ kết quả: nền trắng, để hiển thị mỗi kết quả tìm kiếm */
