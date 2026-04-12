@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { UserPlus, ArrowLeft } from 'lucide-react';
 import '../styles/AuthForm.css';
 
-function RegisterForm({ onRegisterSuccess, onSwitchToLogin, onLoading }) {
+function RegisterForm({ onSwitchToLogin, onLoading }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -55,16 +55,17 @@ function RegisterForm({ onRegisterSuccess, onSwitchToLogin, onLoading }) {
         return;
       }
 
-      // Sau khi đăng ký thành công, tự động đăng nhập
-      const data = await response.json();
-      localStorage.setItem('authToken', data.access_token || 'token_' + Date.now());
-      localStorage.setItem('username', username);
-      localStorage.setItem('isAuthenticated', 'true');
-
+      // Sau khi đăng ký thành công, set flag vào localStorage và chuyển sang login
+      localStorage.setItem('registerSuccess', 'true');
       setIsLoading(false);
       onLoading(false);
-      onRegisterSuccess();
-    } catch (err) {
+      
+      // Reset form và chuyển sang login
+      setUsername('');
+      setPassword('');
+      setConfirmPassword('');
+      onSwitchToLogin();
+    } catch {
       setError('Lỗi kết nối. Vui lòng kiểm tra backend.');
       setIsLoading(false);
       onLoading(false);
@@ -91,6 +92,7 @@ function RegisterForm({ onRegisterSuccess, onSwitchToLogin, onLoading }) {
               placeholder="Chọn tên đăng nhập"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
+              disabled={isLoading}
             />
           </div>
 
@@ -102,6 +104,7 @@ function RegisterForm({ onRegisterSuccess, onSwitchToLogin, onLoading }) {
               placeholder="Tối thiểu 6 ký tự"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              disabled={isLoading}
             />
           </div>
 
@@ -113,6 +116,7 @@ function RegisterForm({ onRegisterSuccess, onSwitchToLogin, onLoading }) {
               placeholder="Nhập lại mật khẩu"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
+              disabled={isLoading}
             />
           </div>
 
@@ -139,6 +143,7 @@ function RegisterForm({ onRegisterSuccess, onSwitchToLogin, onLoading }) {
             type="button"
             className="toggle-btn"
             onClick={onSwitchToLogin}
+            disabled={isLoading}
           >
             Đăng nhập tại đây
           </button>

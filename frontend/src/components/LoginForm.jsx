@@ -1,5 +1,5 @@
 // Nhập các thư viện cần thiết từ React và các package khác
-import { useState } from 'react'; // Hook để quản lý trạng thái (state)
+import { useState, useEffect } from 'react'; // Hook để quản lý trạng thái (state)
 import { LogIn } from 'lucide-react'; // Icon đăng nhập
 import '../styles/AuthForm.css'; // Tệp CSS để styling
 
@@ -13,6 +13,25 @@ function LoginForm({ onLoginSuccess, onSwitchToRegister, onLoading }) {
   const [password, setPassword] = useState(''); // Lưu mật khẩu
   const [error, setError] = useState(''); // Lưu thông báo lỗi nếu có
   const [isLoading, setIsLoading] = useState(false); // Theo dõi trạng thái đang tải
+  const [registerSuccess, setRegisterSuccess] = useState(() => {
+    // Check localStorage on initial load only
+    const success = localStorage.getItem('registerSuccess');
+    if (success) {
+      localStorage.removeItem('registerSuccess');
+      return true;
+    }
+    return false;
+  });
+
+  // Auto-hide success message after 5 seconds
+  useEffect(() => {
+    if (registerSuccess) {
+      const timer = setTimeout(() => {
+        setRegisterSuccess(false);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [registerSuccess]);
 
   // Hàm xử lý khi người dùng nhấn nút đăng nhập
   const handleSubmit = async (e) => { 
@@ -65,7 +84,7 @@ function LoginForm({ onLoginSuccess, onSwitchToRegister, onLoading }) {
       setIsLoading(false);
       onLoading(false);
       onLoginSuccess();
-    } catch (err) {
+    } catch {
       // Nếu có lỗi kết nối (mạng, server, v.v.)
       setError('Lỗi kết nối. Vui lòng kiểm tra backend.');
       setIsLoading(false);
@@ -86,6 +105,22 @@ function LoginForm({ onLoginSuccess, onSwitchToRegister, onLoading }) {
         {/* Tiêu đề của form */}
         <h2 className="auth-title">Đăng Nhập</h2>
         <p className="auth-subtitle">Draw & Find</p>
+
+        {/* Hiển thị success message nếu vừa đăng ký */}
+        {registerSuccess && (
+          <div style={{
+            backgroundColor: '#d4edda',
+            color: '#155724',
+            padding: '12px 16px',
+            borderRadius: '6px',
+            marginBottom: '16px',
+            fontSize: '14px',
+            textAlign: 'center',
+            border: '1px solid #c3e6cb'
+          }}>
+            ✓ Đăng ký thành công! Vui lòng đăng nhập tại đây.
+          </div>
+        )}
 
         {/* Form đăng nhập */}
         <form onSubmit={handleSubmit}>
