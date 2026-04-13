@@ -1,17 +1,24 @@
 
-
-from fastapi import FastAPI, HTTPException
+# -*- coding: utf-8 -*-
+from fastapi import FastAPI, HTTPException, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from passlib.context import CryptContext
 import sqlite3
 import os
 from datetime import datetime
 from contextlib import asynccontextmanager
+from inference import SketchRetrievalModel
+import tempfile
+import shutil
 
 DATABASE = "auth.db"
+# Global model instance
+model = None
 
 def init_db():
+    global model
     if not os.path.exists(DATABASE): 
         conn = sqlite3.connect(DATABASE)
         cursor = conn.cursor()
@@ -26,7 +33,19 @@ def init_db():
         ''')
         conn.commit()
         conn.close()
-        print("✅ Database khởi tạo thành công")
+        print("[OK] Database initialized successfully")
+    
+    # Load model
+    try:
+        model = SketchRetrievalModel(
+            model_path="clip_triplet.pth",
+            embeddings_path="photo_embeddings.pt",
+            paths_json_path="photo_paths.json"
+        )
+        print("[OK] Model loaded successfully")
+    except Exception as e:
+        print(f"[ERROR] Failed to load model: {e}")
+        model = None
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -51,6 +70,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Mount static files for photo serving
+static_dir = os.path.join(os.path.dirname(__file__), "data", "photo")
+if os.path.exists(static_dir):
+    app.mount("/static", StaticFiles(directory=static_dir), name="static")
+    print(f"[OK] Static files mounted at /static -> {static_dir}")
+else:
+    print(f"[WARNING] Static directory not found: {static_dir}")
 
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
@@ -111,7 +138,10 @@ def read_root():
         "message": "🔐 Draw & Find Authentication Backend",
         "endpoints": {
             "register": "POST /register",
-            "login": "POST /login"
+            "login": "POST /login",
+            "predict": "POST /predict (upload sketch image)",
+            "search": "POST /search (legacy)",
+            "health": "GET /health"
         }
     }
 
@@ -215,12 +245,70 @@ async def search(request: SearchRequest):
 def health_check():
     return {"status": " Backend is running"}
 
+@app.post("/predict")
+async def predict(file: UploadFile = File(...)):
+    """
+    API endpoint để tìm ảnh phù hợp từ sketch.
+    Nhận file sketch, trả về danh sách ảnh phù hợp.
+    """
+    global model
+    
+    if model is None:
+        raise HTTPException(status_code=500, detail="Model chưa được load")
+    
+    if not file.filename.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp')):
+        raise HTTPException(status_code=400, detail="File phải là ảnh (PNG, JPG, JPEG, BMP)")
+    
+    # Save uploaded file to temp location
+    temp_dir = tempfile.mkdtemp()
+    temp_path = os.path.join(temp_dir, file.filename)
+    
+    try:
+        # Save file
+        with open(temp_path, "wb") as f:
+            content = await file.read()
+            f.write(content)
+        
+        # Run prediction
+        prediction_result = model.predict(temp_path, top_k=10)
+        
+        # Reformat results to match frontend expectations
+        formatted_results = [
+            {
+                "image_url": item["image_url"],
+                "class_name": item["class_name"],
+                "score": item["score"],
+                "rank": item["rank"]
+            }
+            for item in prediction_result["results"]
+        ]
+        
+        return {
+            "results": formatted_results,
+            "predicted_class": prediction_result["predicted_class"],
+            "total_count": len(formatted_results)
+        }
+    
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=400, detail=f"Lỗi xử lý ảnh: {str(e)}")
+    except Exception as e:
+        print(f"[ERROR] Prediction error: {e}")
+        raise HTTPException(status_code=500, detail=f"Lỗi prediction: {str(e)}")
+    finally:
+        # Clean up temp files
+        if os.path.exists(temp_dir):
+            shutil.rmtree(temp_dir)
+
+@app.get("/health")
+def health_check():
+    return {"status": " Backend is running"}
+
 if __name__ == "__main__":
     import uvicorn
-    print(" Khởi động Draw & Find Backend...")
-    print(" Server chạy tại: http://localhost:8000")
-    print(" API Docs (Swagger UI) tại: http://localhost:8000/docs")
-    print(" Alternative Docs (ReDoc) tại: http://localhost:8000/redoc")
+    print("[START] Starting Draw & Find Backend...")
+    print("[INFO] Server running at: http://localhost:8000")
+    print("[INFO] API Docs (Swagger UI) at: http://localhost:8000/docs")
+    print("[INFO] Alternative Docs (ReDoc) at: http://localhost:8000/redoc")
     print("=" * 60)
     
     uvicorn.run(app, host="0.0.0.0", port=8000)
