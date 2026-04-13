@@ -243,7 +243,7 @@ async def search(request: SearchRequest):
 
 @app.get("/health")
 def health_check():
-    return {"status": " Backend is running"}
+    return {"status": "Backend is running"}
 
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
@@ -270,7 +270,7 @@ async def predict(file: UploadFile = File(...)):
             f.write(content)
         
         # Run prediction
-        prediction_result = model.predict(temp_path, top_k=10)
+        prediction_result = model.predict(temp_path, top_k=5)
         
         # Reformat results to match frontend expectations
         formatted_results = [
@@ -298,10 +298,6 @@ async def predict(file: UploadFile = File(...)):
         # Clean up temp files
         if os.path.exists(temp_dir):
             shutil.rmtree(temp_dir)
-
-@app.get("/health")
-def health_check():
-    return {"status": " Backend is running"}
 
 if __name__ == "__main__":
     import uvicorn

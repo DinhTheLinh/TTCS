@@ -8,7 +8,7 @@ import SketchCanvas from './components/SketchCanvas';
 
 function App() {
   // 🔐 Authentication State
-  const [authStatus, setAuthStatus] = useState('authenticated'); // 'login' | 'register' | 'authenticated'
+  const [authStatus, setAuthStatus] = useState('login'); // 'login' | 'register' | 'authenticated'
   const [currentUser, setCurrentUser] = useState(null);
   
   // 🎨 Canvas & Search State
@@ -17,10 +17,20 @@ function App() {
   const [results, setResults] = useState([]); 
   const [searchCategory, setSearchCategory] = useState(null); // 'animal' | 'product'
 
-  // 🔐 Initialize user on load
+  // 🔐 Initialize user on load - Check localStorage
   useEffect(() => {
-    setCurrentUser("demo_user");
-    setAuthStatus("authenticated");
+    const token = localStorage.getItem('authToken');
+    const username = localStorage.getItem('username');
+    const isAuthenticated = localStorage.getItem('isAuthenticated');
+    
+    if (token && username && isAuthenticated === 'true') {
+      // User đã đăng nhập trước đó
+      setCurrentUser(username);
+      setAuthStatus('authenticated');
+    } else {
+      // Chưa đăng nhập, show login form
+      setAuthStatus('login');
+    }
   }, []);
 
   // 🔐 Handle successful login
