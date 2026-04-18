@@ -1,10 +1,10 @@
 // Draw & Find - Main App Component
 import { useState, useEffect } from 'react'; 
-import './App.css';
+import '../styles/App.css';
 import { LogOut } from 'lucide-react';
-import LoginForm from './components/LoginForm';
-import RegisterForm from './components/RegisterForm';
-import SketchCanvas from './components/SketchCanvas';
+import LoginForm from './LoginForm';
+import RegisterForm from './RegisterForm';
+import SketchCanvas from './SketchCanvas';
 
 function App() {
   // 🔐 Authentication State
