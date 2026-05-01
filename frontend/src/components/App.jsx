@@ -59,17 +59,17 @@ function App() {
     setResults([]);
   };
 
-  // 🔐 Switch to register form
+  //  Switch to register form
   const switchToRegister = () => {
     setAuthStatus('register');
   };
 
-  // 🔐 Switch to login form
+  //  Switch to login form
   const switchToLogin = () => {
     setAuthStatus('login');
   };
 
-  // 🔍 Handle sketch search
+  //  Handle sketch search
   const handleSearch = async (blob) => {
     if (isLoading || !searchCategory || !blob) return;
 
@@ -148,7 +148,7 @@ function App() {
               <p className="welcome-message">Hello, <strong>{currentUser}</strong>!</p> 
               <p className="welcome-subtitle">Sketch your idea, we find the match.</p>
               
-              {/* 🔍 Search category selection */}
+              {/*  Search category selection */}
               <div className="search-category-container">
                 <button
                   className={`search-category-option ${searchCategory === 'animal' ? 'selected' : ''}`}

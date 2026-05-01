@@ -68,8 +68,6 @@ function SketchCanvas({
       clientY = e.clientY;
     }
     
-    // Account for zoom transformation by dividing by zoom factor
-    // This corrects the offset that occurs when canvas is scaled
     const x = (clientX - rect.left) / zoom;
     const y = (clientY - rect.top) / zoom;
     

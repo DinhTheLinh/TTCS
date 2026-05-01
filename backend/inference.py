@@ -105,7 +105,7 @@ class SketchRetrievalModel:
             results.append({
                 "rank": rank,
                 "image_path": image_path,
-                "image_url": self.to_web_path(image_path),  # 🔥 QUAN TRỌNG
+                "image_url": self.to_web_path(image_path),  
                 "score": float(score),
                 "class_name": class_name
             })
