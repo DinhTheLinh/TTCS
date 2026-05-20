@@ -35,3 +35,4 @@ uploads/
 .env
 .env.local
 .env.*.local
+backend/clip_triplet_hard_margin_0_4.zip
